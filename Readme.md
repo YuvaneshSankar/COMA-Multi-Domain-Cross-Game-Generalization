@@ -1,92 +1,5 @@
 
-4 domains (all running on your laptop)
-Domain 1: Procedurally Generated Dungeons
-i built a custom grid-based environment where agents navigate randomized mazes, fight enemies, collect treasures. the cool part? every episode has a different map. no two games are alike. this forces agents to learn generalizable coordination strategies instead of memorizing one layout.
-
-What happens here:
-
-Agents must coordinate to defeat enemies
-
-Centralized critic (COMA) decides if agent A's action was actually good given what agent B did
-
-Agents learn: "should i attack or should i defend? depends on what my teammate is doing"
-
-Domain 2: Cross-Game Transfer (Atari)
-once agents get decent at coordination in dungeons, i throw them into completely different games—multi-agent Pong, Tennis, Boxing (using PettingZoo).
-
-the transfer trick:
-
-i freeze the early neural network layers (those learned "how to coordinate in general")
-
-only fine-tune the later layers (those learn "this specific game has different physics")
-
-result: agents learn the new game ~30-50% faster than if they started from scratch
-
-why? because coordination skills are transferable. attacking together in a dungeon feels kinda similar to attacking together in Pong, even though the games look nothing alike.
-
-Domain 3: Adversarial Level Generation
-here's where it gets fun. i decided to train another agent whose job is to generate game levels for the COMA team to solve.
-
-this generator agent:
-
-wins when it creates levels that are "hard but not impossible"
-
-loses if levels are too easy (agents solve instantly) or impossible (unsolvable)
-
-continuously evolves to find the sweet spot
-
-what this means:
-
-the solver agents get progressively harder challenges without me manually tweaking difficulty
-
-the generator learns what makes a level "hard" for multi-agent teams
-
-both agents co-evolve: generator creates harder levels → solvers adapt → generator creates even harder levels
-
-it's like a curriculum that designs itself.
-
-Domain 4: Meta-RL with Game-Type Inference
-this is the kicker. i wanted to train one policy that works across all these different domains without telling it which domain it's in.
-
-how?
-
-the agent keeps a memory of the last 20 transitions (states, actions, rewards)
-
-a Transformer network reads this memory and figures out: "wait, based on what i'm seeing... am i in a dungeon? Pong? a generated level?"
-
-once it infers the game type, it automatically switches its strategy
-
-why this matters:
-
-zero-shot adaptation: throw the agent into a brand new game it's never seen, and it should still perform decently because it's learned how different games "feel"
-
-this is basically how humans play games. we play Mario, then start playing Zelda, and we don't need a manual to understand we should attack enemies differently
-
-the research contributions (why this isn't just "cool" but actually publishable)
-1. novel combined approach
-nobody's doing COMA + procedural generation + transfer learning + meta-RL all in one system. i'm combining insights from 4 different subfields of RL.
-
-2. adversarial curriculum learning
-the generator-solver co-evolution is genuinely novel. instead of having a human manually design difficulty curves, the system learns to create its own.
-
-3. cross-domain generalization
-showing that multi-agent coordination skills transfer across fundamentally different game types is a concrete research contribution.
-
-4. inference-based adaptation
-meta-RL with implicit game-type inference (no labels) is harder than explicit curriculum learning, and it's more realistic.
-
-folder structure (so you know what's where)
-text
-multi_domain_coma/
-│
-├── environments/
-│   ├── procedural_dungeon.py      # my custom grid-based game engine
-│   ├── atari_wrapper.py            # wraps PettingZoo Atari games
-│   └── level_generator.py          # the agent that generates levels
-│
-├── agents/
-│   ├── coma_agent.py               # the core COMA algorithm i implemented
-│   ├── transformer_policy.py       # Transformer for meta-RL inference
+# 4 domains (all running on your laptop)
 
 # COMA — Multi-Domain Cross-Game Generalization
 
@@ -119,9 +32,6 @@ Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-
-Train a single-domain solver (procedural dungeon):
-
 ```bash
 python scripts/train_single_domain.py --episodes 10000
 ```
