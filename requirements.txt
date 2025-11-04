@@ -1,0 +1,9 @@
+torch
+numpy
+gymnasium
+pettingzoo
+scipy
+pytorch-lightning
+matplotlib
+tensorboard
+wandb

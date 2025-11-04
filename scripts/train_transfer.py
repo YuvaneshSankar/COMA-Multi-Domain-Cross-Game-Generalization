@@ -1,5 +1,6 @@
 
 import torch
+import torch.nn as nn
 import numpy as np
 import logging
 import os
@@ -66,11 +67,22 @@ def train_transfer(
         frame_stack=4,
     )
 
-    # Create transfer learning trainer
-    logger.info("Setting up transfer learning...")
+    # Create a simple target model for Atari observations (flattened frames -> action logits)
+    logger.info("Setting up transfer learning target model...")
+    frames_shape = atari_env.observation_space['frames'].shape  # (frame_stack, H, W, C)
+    obs_flat_dim = int(np.prod(frames_shape))
+
+    # Simple MLP as a target head (feature extractor could be added)
+    target_model = nn.Sequential(
+        nn.Flatten(),
+        nn.Linear(obs_flat_dim, 512),
+        nn.ReLU(),
+        nn.Linear(512, dungeon_agent.action_dim),
+    ).to(device)
+
     transfer_learner = TransferLearner(
         source_model=dungeon_agent.actors[0],  # Use first actor as source
-        target_model=atari_env,
+        target_model=target_model,
         transfer_strategy=transfer_strategy,
         learning_rate=learning_rate,
         device=device,
